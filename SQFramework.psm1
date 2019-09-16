@@ -154,7 +154,7 @@ function Restart-SonarQubeServer {
     .DESCRIPTION
         Restarts the SonarQube server. You might need to do that after you install, uninstall, updated plugins for example.
     .EXAMPLE
-        $params = {
+        $params = @{
             Uri = https://mysonar.com;
             Header = (New-AuthHeader -username sonaruser -password mypassword)
         }
@@ -353,6 +353,45 @@ function Uninstall-SonarQubePlugin {
     }
 }
 
+function Add-SonarQubeServerLicense {
+    <#
+    .SYNOPSIS
+        Applies license to sonarqube server.
+    .DESCRIPTION
+        Applies license to sonarqube server. You use taht when you installed a Developer or Enterprise version of SonarQube.
+    .EXAMPLE
+        $params = @{
+            Uri = https://mysonar.com;
+            Header = (New-AuthHeader -username sonaruser -password mypassword)
+        }
+        Add-SonarQubeServerLicense @params -license "9067835469078534689053469034587639584734590"
+    #>
+
+    param (
+        $Uri,
+        $Header,
+        $license
+    )
+    try {
+        
+        Write-Output "Applying license to sonarqube server."
+
+        $response = Invoke-WebRequest -Uri "$Uri/api/editions/set_license?license=$license" -Method Post -Headers $Header -ErrorVariable ResponseError
+    }
+    catch {
+        if ($response.StatusCode -eq 200) {
+
+            $status = $response.Content | ConvertFrom-Json
+            $status
+
+        }
+        else {
+            Write-Host $ResponseError.Message -ErrorAction Stop
+            return "Error"
+        }
+    }
+
+}
 
 function Migrate-SonarQube {
     param(
